@@ -1,0 +1,136 @@
+1:06:40 objasnjava se proces
+
+get("TimeLock") je funkcija koja se koristi za dohvaćanje instance pametnog ugovora koji je prethodno raspoređen. Ova funkcija vraća adresu pametnog ugovora1.
+
+ethers.getContractAt("TimeLock", deployer) je funkcija iz knjižnice ethers.js koja se koristi za stvaranje instance pametnog ugovora za interakciju s njim2. Ova funkcija prima dva argumenta: ime pametnog ugovora (“TimeLock”) i adresu na kojoj je ugovor raspoređen (deployer). Rezultat ove funkcije je instanca pametnog ugovora koja se može koristiti za interakciju s funkcijama ugovora2.
+
+Dakle, glavna razlika između ove dvije funkcije je ta što get("TimeLock") dohvaća adresu raspoređenog ugovora, dok ethers.getContractAt("TimeLock", deployer) stvara instancu tog ugovora za daljnju interakciju21.
+
+---
+
+## Deploying Governance Token
+
+deploying "GovernanceToken" (tx: 0x46a8c4756882acfbe51bcb52fb3bf4375f9982960414c44c77f38698fc38f324)...: deployed at 0x5FbDB2315678afecb367f032d93F642f64180aa3 with 1933418 gas
+GovernanceToken at 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Delegating to 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Checkpoints: 1
+Delegated!
+
+---
+
+## Deploying TimeLock
+
+deploying "TimeLock" (tx: 0x18ff20a62b8d1e8e34b3b72c172bae99e47224b7d948885f35c773b2d72cf0af)...: deployed at 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0 with 1601926 gas
+TimeLock at 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+
+---
+
+## Deploying Governor contract
+
+deploying "GovernorContract" (tx: 0xf04fefdf1cc2e341932e642bdfe7919ab9875fe3eea765d716e582aaf446cc24)...: deployed at 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 with 3924963 gas
+GovernorContract at 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+Setting up roles
+
+---
+
+## Deploying Box
+
+deploying "Box" (tx: 0xd7a1944208f2dfa458ee4bfcd5090d28979f90ed124fd1329be916f4d7f880ee)...: deployed at 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853 with 207620 gas
+Transfer Ownership Done
+Box deployed at 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+
+Proces:
+1.nesto predlozimo-propose
+2.ide voting proces
+
+yarn add fs
+
+Problem:
+ypeError: Cannot read properties of undefined (reading '0')
+const proposalId = proposeReceipt.events[0].args.proposalId;
+
+The receipt has the events listed under the logs key and not events. This should work:
+
+const log = governor.interface.parseLog(proposeReceipt.logs[0]);
+const proposalId = log.args.proposalId;
+
+....................
+Proposing store on [object Promise] with 77
+Proposal Description:
+Proposal #1 77 in the Box!
+Moving blocks...
+Moved 2 blocks
+11
+22
+Proposed with proposal ID:
+51508501457481436077634888669578781761098444908194579718864424217340756472817
+Current Proposal State: 0
+Current Proposal Snapshot: 15
+Current Proposal Deadline: 16
+Done in 9.02s.
+.....................
+
+za ethers problem :
+https://github.com/smartcontractkit/full-blockchain-solidity-course-js/discussions/5869
+
+yarn hardhat run scripts/vote.js --network localhost
+yarn run v1.22.19
+warning package.json: No license field
+warning ..\package.json: No license field
+$ C:\Users\stipe\Documents\workspace\EthereumWorkspace\prod\hardhat-dao\node_modules\.bin\hardhat run scripts/vote.js --network localhost
+voting.....
+Current Proposal State: 0 111. 2222. 333.
+Current Proposal State: 0
+Moving blocks...
+Moved 6 blocks
+you have voted...
+Done in 8.59s.
+
+error type:
+
+const descriptionHash = ethers.utils.keccak256(
+ethers.utils.toUtf8Bytes(PROPOSAL_DESCRIPTION)
+);
+sam zaminija s ovim i radi :
+const descriptionHash = ethers.keccak256(
+ethers.toUtf8Bytes(PROPOSAL_DESCRIPTION)
+);
+
+TypeError: unsupported addressable value (argument="target", value=null, code=INVALID_ARGUMENT, version=6.8.1)
+kriva adresa ode:
+const queueTx = await governorContract.queue(
+[box.address],
+[0],
+[encodedData],
+descriptionHash
+);
+
+rjesenje:
+u onovijim etherima v6 triba koristit getAddress() pa ovako san naravija:
+const box = await ethers.getContract("Box");
+const boxaddress = box.getAddress();
+const queueTx = await governorContract.queue(
+[boxaddress],
+[0],
+[encodedData],
+descriptionHash
+);
+
+$ yarn hardhat run scripts/queue-and-execute.js --network localhost
+yarn run v1.22.19
+warning package.json: No license field
+warning ..\package.json: No license field
+$ C:\Users\stipe\Documents\workspace\EthereumWorkspace\prod\hardhat-dao\node_modules\.bin\hardhat run scripts/queue-and-execute.js --network localhost
+descriptionHash 0x037dafdb605b77c51dd1e7239e3a9d71a9356e716c6af054ccda04745d440062
+queueing....
+queued....
+moving time...
+time passed
+Moving blocks...
+Moved 1 blocks
+executing....
+executed...
+77
+Done in 8.40s.
+
+---
